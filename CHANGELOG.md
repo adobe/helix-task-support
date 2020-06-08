@@ -1,3 +1,10 @@
+# 1.0.0 (2020-06-08)
+
+
+### Bug Fixes
+
+* initial release ([13e93c7](https://github.com/adobe/helix-task-support/commit/13e93c775a80f479df6967a36995cd247fe6e171))
+
 ## [1.4.3](https://github.com/adobe/helix-library/compare/v1.4.2...v1.4.3) (2020-04-06)
 
 
