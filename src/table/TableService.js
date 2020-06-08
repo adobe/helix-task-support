@@ -21,16 +21,12 @@ class TableService {
   constructor(storage, connectionString, tableName) {
     this._tableSvc = storage.createTableService(connectionString);
     [
-      'createTable',
       'createTableIfNotExists',
       'deleteEntity',
-      'deleteTable',
-      'deleteTableIfExists',
       'executeBatch',
       'insertEntity',
       'mergeEntity',
       'queryEntities',
-      'replaceEntity',
       'retrieveEntity',
     ].forEach((m) => {
       const prom = util.promisify(this._tableSvc[m].bind(this._tableSvc));

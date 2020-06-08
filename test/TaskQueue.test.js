@@ -17,14 +17,15 @@
 const util = require('util');
 const assert = require('assert');
 const proxyquire = require('proxyquire');
-const TableService = require('./TableService.js');
+const TableService = require('../src/table/TableService.js');
+const StorageTableService = require('./table/TableService.js');
 
 const sleep = util.promisify(setTimeout);
 
 /**
- * Our table backing up the task queue.
+ * Constructor arguments.
  */
-let tableStub;
+let constructorArgs;
 
 /**
  * Proxy our real OW action and its requirements.
@@ -32,22 +33,60 @@ let tableStub;
  * @param {Function} invoke OW action to invoke
  */
 const TaskQueue = proxyquire('../src/TaskQueue.js', {
+  'azure-storage': {
+    createTableService: () => new StorageTableService(),
+  },
   './table/TableService.js': class {
-    constructor() {
-      return tableStub;
+    constructor(storage, connectionString, tableName) {
+      constructorArgs = { storage, connectionString, tableName };
+      return new TableService(storage, connectionString, tableName);
     }
   },
 });
 
-describe('TaskQueue Tests', () => {
+describe('TaskQueue validation tests', () => {
+  it('Check required arugments', () => {
+    assert.throws(() => new TaskQueue({}), /missing/);
+    assert.throws(() => new TaskQueue({
+      AZURE_STORAGE_CONNECTION_STRING: 'foo',
+    }), /missing/);
+  });
+  it('Check table name wins over subscription name', () => {
+    assert.notEqual(null, new TaskQueue({
+      AZURE_STORAGE_CONNECTION_STRING: 'foo',
+      AZURE_STORAGE_TABLE_NAME: 'bar',
+      AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: 'baz',
+    }));
+    assert.equal(constructorArgs.tableName, 'bar');
+  });
+  it('Check simple subscription name', () => {
+    assert.notEqual(null, new TaskQueue({
+      AZURE_STORAGE_CONNECTION_STRING: 'foo',
+      AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: 'bar',
+    }));
+    assert.equal(constructorArgs.tableName, 'bar');
+  });
+  it('Check service type subscription name', () => {
+    assert.notEqual(null, new TaskQueue({
+      AZURE_STORAGE_CONNECTION_STRING: 'foo',
+      AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: 'namespace--package--service',
+    }));
+    assert.equal(constructorArgs.tableName, 'namespacepackageservice');
+  });
+  it('Check version gets ignored in service type subscription name', () => {
+    assert.notEqual(null, new TaskQueue({
+      AZURE_STORAGE_CONNECTION_STRING: 'foo',
+      AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: 'namespace--package--service--latest',
+    }));
+    assert.equal(constructorArgs.tableName, 'namespacepackageservice');
+  });
+});
+
+describe('TaskQueue operation tests', () => {
   const params = {
     AZURE_STORAGE_CONNECTION_STRING: 'foo',
     AZURE_STORAGE_TABLE_NAME: 'bar',
   };
-
-  beforeEach(() => {
-    tableStub = new TableService();
-  });
 
   it('Create task queue', async () => {
     const queue = new TaskQueue(params, console);
@@ -55,13 +94,27 @@ describe('TaskQueue Tests', () => {
     assert.equal(size, 0);
   });
 
-  it('Insert item into task queue', async () => {
+  it('Insert boolean into task queue', async () => {
     const queue = new TaskQueue(params, console);
-    const uuid = await queue.insert({ foo: 'bar' });
+    const uuid = await queue.insert(true);
     const size = await queue.size();
     assert.equal(size, 1);
     const task = await queue.get(uuid);
     assert.equal(task.status, 'not started');
+  });
+  it('Insert object into task queue', async () => {
+    const queue = new TaskQueue(params, console);
+    const uuid = await queue.insert({ foo: 'bar', is: true, when: Date.now() });
+    const size = await queue.size();
+    assert.equal(size, 1);
+    const task = await queue.get(uuid);
+    assert.equal(task.status, 'not started');
+  });
+
+  it('Fetching non-existing task', async () => {
+    const queue = new TaskQueue(params, console);
+    const task = await queue.get('dummy');
+    assert.equal(task, null);
   });
 
   it('Check done tasks', async () => {
