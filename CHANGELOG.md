@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/adobe/helix-task-support/compare/v1.0.0...v1.0.1) (2020-06-08)
+
+
+### Bug Fixes
+
+* **table:** remove topic receiver and increase codecov ([5bc69ab](https://github.com/adobe/helix-task-support/commit/5bc69ab7847d9aa430ff1dffdb24fe6f4d0dcd74))
+
 # 1.0.0 (2020-06-08)
 
 
