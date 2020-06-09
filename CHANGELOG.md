@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/adobe/helix-task-support/compare/v1.0.1...v1.0.2) (2020-06-09)
+
+
+### Bug Fixes
+
+* codecov to 100% ([4126397](https://github.com/adobe/helix-task-support/commit/4126397d5f74145c578595ff63ee6b2f1f370754))
+
 ## [1.0.1](https://github.com/adobe/helix-task-support/compare/v1.0.0...v1.0.1) (2020-06-08)
 
 
