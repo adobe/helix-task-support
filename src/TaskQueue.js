@@ -148,8 +148,7 @@ class TaskQueue {
   }
 
   /**
-   * Return at most one task that has been idle
-   * for a certain amount of seconds.
+   * Return at most one task that has been idle for a certain amount of milliseconds.
    *
    * @param {number} duration duration in milliseconds
    * @returns {object} dead task or null
