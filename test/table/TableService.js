@@ -67,7 +67,11 @@ class TableService {
 
   insertEntity(table, entityDescriptor, callback) {
     const data = this._data[table];
-    const entity = { Timestamp: entGen.DateTime(Date.now() * 1000), ...entityDescriptor };
+    const entity = {
+      Timestamp: entGen.DateTime(Date.now()),
+      New: entGen.Boolean(true),
+      ...entityDescriptor,
+    };
     data.push(entity);
     callback(null, entity);
   }
@@ -79,7 +83,7 @@ class TableService {
         callback(error);
       }
       const entity = result;
-      Object.assign(entity, entityDescriptor, { Timestamp: entGen.DateTime(Date.now() * 1000) });
+      Object.assign(entity, entityDescriptor, { Timestamp: entGen.DateTime(Date.now()) });
       callback(null, entity);
     });
   }
@@ -87,6 +91,18 @@ class TableService {
   queryEntities(table, query, _, callback) {
     const data = this._data[table];
     let entries = data;
+    if (query._where.length) {
+      query._where.forEach((clause) => {
+        let m = clause.match(/status eq '(.*)'/);
+        if (m && m[1]) {
+          entries = entries.filter((e) => e.status._ === m[1]);
+        }
+        m = clause.match(/Timestamp lt datetime'(.*)'/);
+        if (m && m[1]) {
+          entries = entries.filter((e) => e.Timestamp._ < Date.parse(m[1]));
+        }
+      });
+    }
     if (query._fields.length) {
       entries = entries.map((entry) => pick(entry, ...query._fields));
     }
@@ -94,6 +110,9 @@ class TableService {
   }
 
   retrieveEntity(table, partitionKey, rowKey, callback) {
+    if (typeof rowKey !== 'string') {
+      throw new TypeError('Parameter rowKey should be a string');
+    }
     const data = this._data[table];
     const entity = data.find(
       (item) => item.PartitionKey._ === partitionKey && item.RowKey._ === rowKey,

@@ -151,14 +151,14 @@ class TaskQueue {
    * Return at most one task that has been idle
    * for a certain amount of seconds.
    *
-   * @param {number} duration duration in seconds
+   * @param {number} duration duration in milliseconds
    * @returns {object} dead task or null
    */
   async dead(duration) {
     await this._init();
 
-    const timeStamp = new Date(Date.now() - (duration * 1000));
-    const [dead] = await this._purge('Timestamp < ?date?', timeStamp, 1);
+    const timestamp = new Date(Date.now() - duration);
+    const [dead] = await this._purge('Timestamp < ?date?', timestamp, 1);
     if (dead) {
       this._dead += 1;
     }
