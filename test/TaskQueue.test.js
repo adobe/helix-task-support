@@ -17,15 +17,11 @@
 const util = require('util');
 const assert = require('assert');
 const proxyquire = require('proxyquire');
-const TableService = require('../src/table/TableService.js');
 const StorageTableService = require('./table/TableService.js');
 
 const sleep = util.promisify(setTimeout);
 
-/**
- * Constructor arguments.
- */
-let constructorArgs;
+const tableData = {};
 
 /**
  * Proxy our real OW action and its requirements.
@@ -34,53 +30,41 @@ let constructorArgs;
  */
 const TaskQueue = proxyquire('../src/TaskQueue.js', {
   'azure-storage': {
-    createTableService: () => new StorageTableService(),
-  },
-  './table/TableService.js': class {
-    constructor(storage, connectionString, tableName) {
-      constructorArgs = { storage, connectionString, tableName };
-      return new TableService(storage, connectionString, tableName);
-    }
+    createTableService: () => new StorageTableService(tableData),
   },
 });
 
 describe('TaskQueue validation tests', () => {
-  it('Check required arugments', () => {
+  it('Check required arguments', () => {
     assert.throws(() => new TaskQueue({}), /missing/);
     assert.throws(() => new TaskQueue({
       AZURE_STORAGE_CONNECTION_STRING: 'foo',
     }), /missing/);
   });
-  it('Check table name wins over subscription name', () => {
-    assert.notEqual(null, new TaskQueue({
+  it('Use default partition key', async () => {
+    const params = {
       AZURE_STORAGE_CONNECTION_STRING: 'foo',
       AZURE_STORAGE_TABLE_NAME: 'bar',
-      AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: 'baz',
-    }));
-    assert.equal(constructorArgs.tableName, 'bar');
-  });
-  it('Check simple subscription name', () => {
-    assert.notEqual(null, new TaskQueue({
-      AZURE_STORAGE_CONNECTION_STRING: 'foo',
-      AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: 'bar',
-    }));
-    assert.equal(constructorArgs.tableName, 'bar');
-  });
-  it('Check service type subscription name', () => {
-    assert.notEqual(null, new TaskQueue({
-      AZURE_STORAGE_CONNECTION_STRING: 'foo',
-      AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: 'namespace--package--service',
-    }));
-    assert.equal(constructorArgs.tableName, 'namespacepackageservice');
-  });
-  it('Check version gets ignored in service type subscription name', () => {
-    assert.notEqual(null, new TaskQueue({
-      AZURE_STORAGE_CONNECTION_STRING: 'foo',
-      AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: 'namespace--package--service--latest',
-    }));
-    assert.equal(constructorArgs.tableName, 'namespacepackageservice');
+    };
+    const queue = new TaskQueue(params, console);
+    const uuid = await queue.insert({});
+    const task = await queue.get(uuid);
+    assert.equal(task.PartitionKey, '');
   });
 });
+
+/**
+ * Create a random partition key to check other tasks are not interfered with.
+ *
+ * @param {object} params parameters
+ * @param {string} partitionKey partition key
+ */
+function withPartitionKey(params, partitionKey) {
+  return {
+    ...params,
+    AZURE_STORAGE_PARTITION_KEY: partitionKey || Math.random().toString(16).substr(2),
+  };
+}
 
 describe('TaskQueue operation tests', () => {
   const params = {
@@ -89,30 +73,26 @@ describe('TaskQueue operation tests', () => {
   };
 
   it('Create task queue', async () => {
-    const queue = new TaskQueue(params, console);
-    const size = await queue.size();
-    assert.equal(size, 0);
-  });
-
-  it('Insert object into task queue', async () => {
-    const queue = new TaskQueue(params, console);
-    const uuid = await queue.insert({ foo: 'bar', is: true, when: Date.now() });
-    const size = await queue.size();
-    assert.equal(size, 1);
-    const task = await queue.get(uuid);
-    assert.equal(task.status, 'not started');
+    const queue = new TaskQueue(withPartitionKey(params), console);
     const s = queue.toString();
     assert.notEqual(s, null);
   });
 
+  it('Insert object into task queue', async () => {
+    const queue = new TaskQueue(withPartitionKey(params), console);
+    const uuid = await queue.insert({ foo: 'bar', is: true, when: Date.now() });
+    const task = await queue.get(uuid);
+    assert.equal(task.status, 'not started');
+  });
+
   it('Fetching non-existing task', async () => {
-    const queue = new TaskQueue(params, console);
+    const queue = new TaskQueue(withPartitionKey(params), console);
     const task = await queue.get('dummy');
     assert.equal(task, null);
   });
 
   it('Check done tasks', async () => {
-    const queue = new TaskQueue(params, console);
+    const queue = new TaskQueue(withPartitionKey(params), console);
     const uuid = await queue.insert({ foo: 'bar' });
     let done = await queue.done();
     assert.equal(done.length, 0);
@@ -123,7 +103,7 @@ describe('TaskQueue operation tests', () => {
   });
 
   it('Check error task', async () => {
-    const queue = new TaskQueue(params, console);
+    const queue = new TaskQueue(withPartitionKey(params), console);
     const uuid = await queue.insert({ foo: 'bar' });
     let error = await queue.error();
     assert.equal(error, null);
@@ -133,7 +113,7 @@ describe('TaskQueue operation tests', () => {
   });
 
   it('Check dead task', async () => {
-    const queue = new TaskQueue(params, console);
+    const queue = new TaskQueue(withPartitionKey(params), console);
     const uuid = await queue.insert({ foo: 'bar' });
     let dead = await queue.dead(1000);
     assert.equal(dead, null);
@@ -144,7 +124,16 @@ describe('TaskQueue operation tests', () => {
   });
 
   it('Check wrongly typed uuid is detected', async () => {
-    const queue = new TaskQueue(params, console);
+    const queue = new TaskQueue(withPartitionKey(params), console);
     await assert.rejects(async () => queue.get(1), /should be a string/);
+  });
+
+  it('Use same task queue with 2 partitions simultaneously', async () => {
+    const queue1 = new TaskQueue(withPartitionKey(params), console);
+    const size = await queue1.size();
+    await queue1.insert({});
+    const queue2 = new TaskQueue(withPartitionKey(params), console);
+    await queue2.insert({});
+    assert.equal(await queue2.size(), size + 2);
   });
 });

@@ -93,14 +93,22 @@ class TableService {
     let entries = data;
     if (query._where.length) {
       query._where.forEach((clause) => {
-        let m = clause.match(/status eq '(.*)'/);
-        if (m && m[1]) {
-          entries = entries.filter((e) => e.status._ === m[1]);
+        let m = clause.match(/( and )?PartitionKey eq '(.*)'/);
+        if (m && m[2]) {
+          entries = entries.filter((e) => e.PartitionKey._ === m[2]);
+          return;
         }
-        m = clause.match(/Timestamp lt datetime'(.*)'/);
-        if (m && m[1]) {
-          entries = entries.filter((e) => e.Timestamp._ < Date.parse(m[1]));
+        m = clause.match(/( and )?status eq '(.*)'/);
+        if (m && m[2]) {
+          entries = entries.filter((e) => e.status._ === m[2]);
+          return;
         }
+        m = clause.match(/( and )?Timestamp lt datetime'(.*)'/);
+        if (m && m[2]) {
+          entries = entries.filter((e) => e.Timestamp._ < Date.parse(m[2]));
+          return;
+        }
+        throw new Error(`Unsupported clause: ${clause}`);
       });
     }
     if (query._fields.length) {

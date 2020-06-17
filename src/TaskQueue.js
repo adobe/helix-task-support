@@ -19,42 +19,17 @@ const TableService = require('./table/TableService.js');
 const EntityDecoder = require('./table/EntityDecoder.js');
 const EntityEncoder = require('./table/EntityEncoder.js');
 
-/**
- * Return a table name, derived from a subscription name. A table name
- * in Azure Storage may only contain alpha-numeric characters, so we
- * remove everything else.
- *
- * @param {string} subscriptionName subscription name
- * @return table name
- */
-function decodeTable(subscriptionName) {
-  if (!subscriptionName) {
-    return null;
-  }
-  const parts = subscriptionName.split('--');
-  if (parts.length === 1) {
-    // no separator found, old-style
-    return subscriptionName.replace(/[-\\.]/g, '');
-  }
-  if (parts.length === 4) {
-    // forget version
-    parts.splice(3, 1);
-  }
-  return parts.map((part) => part.replace(/[-\\.]/g, '')).join('');
-}
-
 function createTableService(tableConfig) {
   const {
     AZURE_STORAGE_CONNECTION_STRING: connectionString,
-    AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: subscriptionName,
+    AZURE_STORAGE_TABLE_NAME: tableName,
   } = tableConfig;
 
   if (!connectionString) {
     throw new Error('AZURE_STORAGE_CONNECTION_STRING missing.');
   }
-  const tableName = tableConfig.AZURE_STORAGE_TABLE_NAME || decodeTable(subscriptionName);
   if (!tableName) {
-    throw new Error('AZURE_STORAGE_TABLE_NAME and AZURE_SERVICE_BUS_SUBSCRIPTION_NAME missing.');
+    throw new Error('AZURE_STORAGE_TABLE_NAME missing.');
   }
   return new TableService(storage, connectionString, tableName);
 }
@@ -65,6 +40,8 @@ function createTableService(tableConfig) {
 class TaskQueue {
   constructor(tableConfig, log) {
     this._tableSvc = createTableService(tableConfig);
+    this._partitionKey = tableConfig.AZURE_STORAGE_PARTITION_KEY || '';
+
     this._log = log;
     [this._started, this._done, this._dead, this._error] = [0, 0, 0, 0];
   }
@@ -98,7 +75,7 @@ class TaskQueue {
     const uuid = generateUUID();
     const entGen = storage.TableUtilities.entityGenerator;
     const entity = {
-      PartitionKey: entGen.String(''),
+      PartitionKey: entGen.String(this._partitionKey),
       RowKey: entGen.String(`${uuid}`),
       status: entGen.String('not started'),
     };
@@ -119,7 +96,7 @@ class TaskQueue {
     await this._init();
 
     try {
-      const result = await this._tableSvc.retrieveEntity('', uuid);
+      const result = await this._tableSvc.retrieveEntity(this._partitionKey, uuid);
       return EntityDecoder.decode(result);
     } catch (e) {
       if (e.code === storage.Constants.StorageErrorCodeStrings.RESOURCE_NOT_FOUND) {
@@ -140,7 +117,7 @@ class TaskQueue {
 
     const entGen = storage.TableUtilities.entityGenerator;
     const entity = {
-      PartitionKey: entGen.String(''),
+      PartitionKey: entGen.String(this._partitionKey),
       RowKey: entGen.String(uuid),
     };
     EntityEncoder.encode(entity, stats);
@@ -206,7 +183,8 @@ class TaskQueue {
    */
   async _purge(condition, arg, limit = -1) {
     let query = new storage.TableQuery()
-      .where(condition, arg);
+      .where('PartitionKey == ?', this._partitionKey)
+      .and(condition, arg);
     if (limit !== -1) {
       query = query.top(limit);
     }
