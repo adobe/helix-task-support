@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/adobe/helix-task-support/compare/v1.0.2...v1.1.0) (2020-06-18)
+
+
+### Features
+
+* **queue:** support partitions ([#12](https://github.com/adobe/helix-task-support/issues/12)) ([4eea12f](https://github.com/adobe/helix-task-support/commit/4eea12f2e4023d16830fff5434aa3a93e256ee8c))
+
 ## [1.0.2](https://github.com/adobe/helix-task-support/compare/v1.0.1...v1.0.2) (2020-06-09)
 
 
