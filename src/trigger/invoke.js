@@ -9,10 +9,18 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-const TaskQueue = require('./TaskQueue.js');
-const topicDeliver = require('./topic/deliver.js');
 
-module.exports = {
-  TaskQueue,
-  topicDeliver,
-};
+'use strict';
+
+const ow = require('openwhisk');
+
+async function invoke({
+  name, log,
+}) {
+  await ow().triggers.invoke({
+    name,
+  });
+  log.info(`Fired trigger (${name})`);
+}
+
+module.exports = invoke;
