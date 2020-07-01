@@ -43,7 +43,7 @@ describe('Change class tests', () => {
   it('Can create a new delete change instance', () => {
     const change = new Change({
       path: '/foo',
-      type: 'deleted'
+      type: 'deleted',
     });
     assert.equal(change.path, '/foo');
     assert.equal(change.deleted, true);
@@ -65,9 +65,9 @@ describe('Change class tests', () => {
         change: {
           path: '/foo/bar',
           uid: '1234',
-          type: 'deleted'
+          type: 'deleted',
         },
-      }
+      },
     });
     assert.equal(change.path, '/foo/bar');
     assert.equal(change.uid, '1234');
@@ -80,13 +80,13 @@ describe('Change class tests', () => {
         change: {
           path: '/documents/bar',
           uid: '1234',
-          type: 'deleted'
+          type: 'deleted',
         },
         mountpoint: {
           root: '/documents',
-          path: '/en'
-        }
-      }
+          path: '/en',
+        },
+      },
     });
     assert.equal(change.path, '/en/bar');
     assert.equal(change.uid, '1234');
@@ -101,9 +101,9 @@ describe('Change class tests', () => {
         },
         mountpoint: {
           root: '/',
-          path: '/en'
-        }
-      }
+          path: '/en',
+        },
+      },
     });
     assert.equal(change.path, '/en/documents/bar');
   });
@@ -116,9 +116,9 @@ describe('Change class tests', () => {
         },
         mountpoint: {
           root: '/documents/',
-          path: '/'
-        }
-      }
+          path: '/',
+        },
+      },
     });
     assert.equal(change.path, '/bar');
   });
@@ -131,9 +131,9 @@ describe('Change class tests', () => {
         },
         mountpoint: {
           root: '/foo/',
-          path: '/en'
-        }
-      }
+          path: '/en',
+        },
+      },
     });
     assert.equal(change.path, '/documents/bar');
   });
