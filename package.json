@@ -3,6 +3,7 @@
   "version": "1.1.0",
   "description": "Helix Task Support",
   "main": "src/index.js",
+  "types": "src/index.d.ts",
   "scripts": {
     "test": " nyc --reporter=text --reporter=lcov --check-coverage --statements 70 --branches 40 --lines 80 mocha",
     "test-ci": "nyc --reporter=text --reporter=lcov --check-coverage --statements 90 --branches 80 --lines 90 mocha --reporter xunit --reporter-options output=./junit/test-results.xml && codecov",
