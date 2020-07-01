@@ -5,8 +5,8 @@
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "scripts": {
-    "test": " nyc --reporter=text --reporter=lcov --check-coverage --statements 70 --branches 40 --lines 80 mocha",
-    "test-ci": "nyc --reporter=text --reporter=lcov --check-coverage --statements 90 --branches 80 --lines 90 mocha --reporter xunit --reporter-options output=./junit/test-results.xml && codecov",
+    "test": " nyc --reporter=text --reporter=lcov --check-coverage --statements 100 --branches 100 --lines 100 mocha",
+    "test-ci": "nyc --reporter=text --reporter=lcov --check-coverage --statements 100 --branches 100 --lines 100 mocha --reporter xunit --reporter-options output=./junit/test-results.xml && codecov",
     "lint": "./node_modules/.bin/eslint .",
     "semantic-release": "semantic-release",
     "docs": "npx jsdoc2md -c .jsdoc.json --files 'src/*.js'  > docs/API.md",

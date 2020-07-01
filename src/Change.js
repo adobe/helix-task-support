@@ -9,11 +9,15 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+const posixPath = require('path').posix;
 
 'use strict';
 
 class Change {
   constructor({ path, uid = null, type = 'modified' }) {
+    if (!path) {
+      throw new Error('path parameter missing.');
+    }
     this._path = path;
     this._uid = uid;
     this._type = type;
@@ -31,14 +35,15 @@ class Change {
       const { change, mountpoint } = observation;
       const opts = { uid: change.uid, path: change.path, type: change.type };
       if (mountpoint && opts.path) {
-        const re = new RegExp(`^${mountpoint.root}/`);
-        const repl = mountpoint.path.replace(/^\/+/, '');
-        opts.path = opts.path.replace(re, repl);
+        let { root } = mountpoint;
+        if (!root.endsWith('/')) {
+          root += '/';
+        }
+        if (opts.path.startsWith(root)) {
+          opts.path = posixPath.resolve(mountpoint.path, opts.path.substring(root.length));
+        }
       }
       return new Change(opts);
-    }
-    if (!params.path) {
-      throw new Error('path parameter missing.');
     }
     return new Change({ path: params.path });
   }
@@ -49,6 +54,10 @@ class Change {
 
   get uid() {
     return this._uid;
+  }
+
+  get type() {
+    return this._type;
   }
 
   get deleted() {
