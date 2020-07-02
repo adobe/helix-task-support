@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/adobe/helix-task-support/compare/v1.1.0...v1.2.0) (2020-07-02)
+
+
+### Features
+
+* **change:** add change api ([#16](https://github.com/adobe/helix-task-support/issues/16)) ([eb0460d](https://github.com/adobe/helix-task-support/commit/eb0460dd43eef94c01047b9084000576d470807d))
+
 # [1.1.0](https://github.com/adobe/helix-task-support/compare/v1.0.2...v1.1.0) (2020-06-18)
 
 
