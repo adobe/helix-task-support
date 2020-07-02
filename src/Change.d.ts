@@ -9,10 +9,38 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-const TaskQueue = require('./TaskQueue.js');
-const Change = require('./Change.js');
 
-module.exports = {
-  TaskQueue,
-  Change,
-};
+export declare interface Mountpoint {
+  path: string;
+  root: string;
+}
+
+export declare interface ChangeEvent {
+  uid: string;
+  path: string;
+  type: string;
+  time: string;
+}
+
+export declare interface ObservationEvent {
+  change: ChangeEvent;
+  mountpoint: Mountpoint;
+  provider: any;
+}
+
+export declare interface ChangeFromParamsOptions {
+  observation?: ObservationEvent;
+  path: string;
+}
+
+export declare class Change {
+  static fromParams(params: ChangeFromParamsOptions): Change;
+
+  constructor(opts: ChangeEvent);
+
+  path: string;
+
+  uid: string;
+
+  deleted: boolean;
+}

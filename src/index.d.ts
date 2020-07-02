@@ -9,10 +9,4 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-const TaskQueue = require('./TaskQueue.js');
-const Change = require('./Change.js');
-
-module.exports = {
-  TaskQueue,
-  Change,
-};
+export * from './Change';
