@@ -10,29 +10,82 @@
  * governing permissions and limitations under the License.
  */
 
+/**
+ * Declares a mountpoint as defined in an fstab.yaml
+ */
 export declare interface Mountpoint {
-  path: string;
+  /**
+   * The root of the external source
+   */
   root: string;
-}
 
-export declare interface ChangeEvent {
-  uid: string;
+  /**
+   * The mount path.
+   */
   path: string;
-  type: string;
-  time: string;
 }
 
-export declare interface ObservationEvent {
-  change: ChangeEvent;
-  mountpoint: Mountpoint;
+/**
+ * Change event sent via observation.
+ */
+export declare interface ChangeEvent {
+  /**
+   * uid of the change
+   */
+  uid: string;
+
+  /**
+   * path of the changed document
+   */
+  path: string;
+
+  /**
+   * type of change: 'added', 'modified', 'deleted'
+   */
+  type: string;
+
+  /**
+   * timestamp of event
+   */
+  time: string;
+
+  /**
+   * provider specific data.
+   */
   provider: any;
 }
 
-export declare interface ChangeFromParamsOptions {
-  observation?: ObservationEvent;
-  path: string;
+/**
+ * Observation event
+ */
+export declare interface ObservationEvent {
+  /**
+   * Change that occurred.
+   */
+  change: ChangeEvent;
+
+  /**
+   * Corresponding mountpoint
+   */
+  mountpoint: Mountpoint;
+
+  /**
+   * provider specific data.
+   */
+  provider: any;
 }
 
+/**
+ * Parameters for Change.fromParams() options.
+ */
+export declare interface ChangeFromParamsOptions {
+  observation?: ObservationEvent;
+  path?: string;
+}
+
+/**
+ * Change class.
+ */
 export declare class Change {
   static fromParams(params: ChangeFromParamsOptions): Change;
 
@@ -43,4 +96,8 @@ export declare class Change {
   uid: string;
 
   deleted: boolean;
+
+  type: string;
+
+  provider: any;
 }
