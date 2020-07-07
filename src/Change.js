@@ -15,13 +15,16 @@
 const posixPath = require('path').posix;
 
 class Change {
-  constructor({ path, uid = null, type = 'modified' }) {
+  constructor({
+    path, uid = null, type = 'modified', provider,
+  }) {
     if (!path) {
       throw new Error('path parameter missing.');
     }
     this._path = path;
     this._uid = uid;
     this._type = type;
+    this._provider = provider;
   }
 
   /**
@@ -34,7 +37,9 @@ class Change {
     const { observation } = params;
     if (observation) {
       const { change, mountpoint } = observation;
-      const opts = { uid: change.uid, path: change.path, type: change.type };
+      const opts = {
+        uid: change.uid, path: change.path, type: change.type, provider: change.provider,
+      };
       if (mountpoint && opts.path) {
         let { root } = mountpoint;
         if (!root.endsWith('/')) {
@@ -63,6 +68,10 @@ class Change {
 
   get deleted() {
     return this._type === 'deleted';
+  }
+
+  get provider() {
+    return this._provider;
   }
 }
 

@@ -23,11 +23,17 @@ describe('Change class tests', () => {
       path: '/foo',
       uid: '1234',
       type: 'added',
+      provider: {
+        itemId: 'foo-bar',
+      },
     });
     assert.equal(change.path, '/foo');
     assert.equal(change.uid, '1234');
     assert.equal(change.type, 'added');
     assert.equal(change.deleted, false);
+    assert.deepEqual(change.provider, {
+      itemId: 'foo-bar',
+    });
   });
 
   it('Can create a new change instance with defaults', () => {
