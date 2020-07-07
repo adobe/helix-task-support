@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/adobe/helix-task-support/compare/v1.2.0...v1.3.0) (2020-07-07)
+
+
+### Features
+
+* **change:** add provider information ([#20](https://github.com/adobe/helix-task-support/issues/20)) ([3d4f00c](https://github.com/adobe/helix-task-support/commit/3d4f00c705f45e1edc1dfcf07a9b6e8979642c62))
+
 # [1.2.0](https://github.com/adobe/helix-task-support/compare/v1.1.0...v1.2.0) (2020-07-02)
 
 
