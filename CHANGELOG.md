@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/adobe/helix-task-support/compare/v1.3.0...v1.4.0) (2020-07-17)
+
+
+### Features
+
+* **change:** make path optional ([#22](https://github.com/adobe/helix-task-support/issues/22)) ([26ee977](https://github.com/adobe/helix-task-support/commit/26ee977408dd70b64c5ddbc2e36100c78a539f49))
+
 # [1.3.0](https://github.com/adobe/helix-task-support/compare/v1.2.0...v1.3.0) (2020-07-07)
 
 
