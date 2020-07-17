@@ -55,8 +55,14 @@ describe('Change class tests', () => {
     assert.equal(change.deleted, true);
   });
 
-  it('Can requires a path', () => {
-    assert.throws(() => (new Change({})), new Error('path parameter missing.'));
+  it('Can create a change with no path', () => {
+    const change = new Change({
+      uid: '1234',
+      type: 'deleted',
+    });
+    assert.equal(change.path, undefined);
+    assert.equal(change.deleted, true);
+    assert.equal(change.uid, '1234');
   });
 
   it('Can create a change instance from params', () => {

@@ -18,9 +18,6 @@ class Change {
   constructor({
     path, uid = null, type = 'modified', provider,
   }) {
-    if (!path) {
-      throw new Error('path parameter missing.');
-    }
     this._path = path;
     this._uid = uid;
     this._type = type;
