@@ -9,12 +9,27 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-const TaskQueue = require('./TaskQueue.js');
-const Change = require('./Change.js');
-const Lock = require('./Lock.js');
 
-module.exports = {
-  TaskQueue,
-  Change,
-  Lock,
-};
+'use strict';
+
+const util = require('util');
+
+/**
+ * Utility class for Azure's BlobService that promisifies callback methods.
+ */
+class BlobService {
+  constructor(storage, connectionString, containerName) {
+    this._blobSvc = storage.createBlobService(connectionString);
+    [
+      'acquireLease',
+      'releaseLease',
+      'createBlockBlobFromText',
+      'doesBlobExist',
+    ].forEach((m) => {
+      const prom = util.promisify(this._blobSvc[m].bind(this._blobSvc));
+      this[m] = (...args) => prom(containerName, ...args);
+    });
+  }
+}
+
+module.exports = BlobService;

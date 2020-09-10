@@ -19,11 +19,11 @@ const TableService = require('./table/TableService.js');
 const EntityDecoder = require('./table/EntityDecoder.js');
 const EntityEncoder = require('./table/EntityEncoder.js');
 
-function createTableService(tableConfig) {
+function createTableService(opts) {
   const {
     AZURE_STORAGE_CONNECTION_STRING: connectionString,
     AZURE_STORAGE_TABLE_NAME: tableName,
-  } = tableConfig;
+  } = opts;
 
   if (!connectionString) {
     throw new Error('AZURE_STORAGE_CONNECTION_STRING missing.');
@@ -34,13 +34,19 @@ function createTableService(tableConfig) {
   return new TableService(storage, connectionString, tableName);
 }
 
+const NULL_LOCK = {
+  acquire: () => true,
+  release: () => {},
+};
+
 /**
  * Provides a queue for tasks.
  */
 class TaskQueue {
-  constructor(tableConfig, log) {
-    this._tableSvc = createTableService(tableConfig);
-    this._partitionKey = tableConfig.AZURE_STORAGE_PARTITION_KEY || '';
+  constructor(opts, log) {
+    this._tableSvc = createTableService(opts);
+    this._partitionKey = opts.AZURE_STORAGE_PARTITION_KEY || '';
+    this._lock = opts.lock || NULL_LOCK;
 
     this._log = log;
     [this._started, this._done, this._dead, this._error] = [0, 0, 0, 0];
@@ -59,6 +65,22 @@ class TaskQueue {
     await this._init();
 
     const query = new storage.TableQuery().select('metadata');
+    const result = await this._tableSvc.queryEntities(query, null);
+    return result.entries.length;
+  }
+
+  /**
+   * Return the number of tasks in the task queue for our partition key.
+   *
+   * @returns number of tasks
+   */
+  async tasks() {
+    await this._init();
+
+    const query = new storage.TableQuery()
+      .select('metadata')
+      .where('PartitionKey == ?', this._partitionKey);
+
     const result = await this._tableSvc.queryEntities(query, null);
     return result.entries.length;
   }
@@ -182,27 +204,34 @@ class TaskQueue {
    * @returns {Array} tasks purged
    */
   async _purge(condition, arg, limit = -1) {
-    let query = new storage.TableQuery()
-      .where('PartitionKey == ?', this._partitionKey)
-      .and(condition, arg);
-    if (limit !== -1) {
-      query = query.top(limit);
-    }
-    const result = await this._tableSvc.queryEntities(query, null);
-    const entities = result.entries.map((e) => EntityDecoder.decode(e));
+    try {
+      if (!await this._lock.acquire()) {
+        return [];
+      }
+      let query = new storage.TableQuery()
+        .where('PartitionKey == ?', this._partitionKey)
+        .and(condition, arg);
+      if (limit !== -1) {
+        query = query.top(limit);
+      }
+      const result = await this._tableSvc.queryEntities(query, null);
+      const entities = result.entries.map((e) => EntityDecoder.decode(e));
 
-    const batch = new storage.TableBatch();
-    entities.forEach((entity) => {
-      const entityDescriptor = {
-        PartitionKey: { _: entity.PartitionKey },
-        RowKey: { _: entity.RowKey },
-      };
-      batch.deleteEntity(entityDescriptor);
-    });
-    if (batch.size() > 0) {
-      await this._tableSvc.executeBatch(batch);
+      const batch = new storage.TableBatch();
+      entities.forEach((entity) => {
+        const entityDescriptor = {
+          PartitionKey: { _: entity.PartitionKey },
+          RowKey: { _: entity.RowKey },
+        };
+        batch.deleteEntity(entityDescriptor);
+      });
+      if (batch.size() > 0) {
+        await this._tableSvc.executeBatch(batch);
+      }
+      return entities;
+    } finally {
+      await this._lock.release();
     }
-    return entities;
   }
 
   /**
