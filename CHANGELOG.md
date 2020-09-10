@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/adobe/helix-task-support/compare/v1.4.0...v1.5.0) (2020-09-10)
+
+
+### Features
+
+* **lock:** create a lock class ([#31](https://github.com/adobe/helix-task-support/issues/31)) ([496aff2](https://github.com/adobe/helix-task-support/commit/496aff25d53d91334d0efaf01b58c2c5fed7dc75))
+
 # [1.4.0](https://github.com/adobe/helix-task-support/compare/v1.3.0...v1.4.0) (2020-07-17)
 
 
