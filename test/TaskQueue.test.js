@@ -17,20 +17,18 @@
 const util = require('util');
 const assert = require('assert');
 const proxyquire = require('proxyquire');
-const StorageTableService = require('./table/TableService.js');
+const MockTableService = require('./table/TableService.js');
 
 const sleep = util.promisify(setTimeout);
 
-const tableData = {};
+let tableData = {};
 
 /**
- * Proxy our real OW action and its requirements.
- *
- * @param {Function} invoke OW action to invoke
+ * Inject mock service into our component.
  */
 const TaskQueue = proxyquire('../src/TaskQueue.js', {
   'azure-storage': {
-    createTableService: () => new StorageTableService(tableData),
+    createTableService: () => new MockTableService(tableData),
   },
 });
 
@@ -71,6 +69,10 @@ describe('TaskQueue operation tests', () => {
     AZURE_STORAGE_CONNECTION_STRING: 'foo',
     AZURE_STORAGE_TABLE_NAME: 'bar',
   };
+
+  beforeEach(() => {
+    tableData = {};
+  });
 
   it('Create task queue', async () => {
     const queue = new TaskQueue(withPartitionKey(params), console);
@@ -130,10 +132,22 @@ describe('TaskQueue operation tests', () => {
 
   it('Use same task queue with 2 partitions simultaneously', async () => {
     const queue1 = new TaskQueue(withPartitionKey(params), console);
-    const size = await queue1.size();
     await queue1.insert({});
     const queue2 = new TaskQueue(withPartitionKey(params), console);
     await queue2.insert({});
-    assert.equal(await queue2.size(), size + 2);
+    assert.equal(await queue1.tasks(), 1);
+    assert.equal(await queue2.size(), 2);
+  });
+
+  it('Task queue should return empty list when acquire fails', async () => {
+    const failsAcquireLock = {
+      acquire: () => false,
+      release: () => {},
+    };
+    const queue = new TaskQueue({ lock: failsAcquireLock, ...params }, console);
+    const uuid = await queue.insert({ foo: 'bar' });
+    await queue.update(uuid, { status: 'done' });
+    const done = await queue.done();
+    assert.equal(done.length, 0);
   });
 });
