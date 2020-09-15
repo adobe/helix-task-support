@@ -27,10 +27,10 @@ describe('Change class tests', () => {
         itemId: 'foo-bar',
       },
     });
-    assert.equal(change.path, '/foo');
-    assert.equal(change.uid, '1234');
-    assert.equal(change.type, 'added');
-    assert.equal(change.deleted, false);
+    assert.strictEqual(change.path, '/foo');
+    assert.strictEqual(change.uid, '1234');
+    assert.strictEqual(change.type, 'added');
+    assert.strictEqual(change.deleted, false);
     assert.deepEqual(change.provider, {
       itemId: 'foo-bar',
     });
@@ -40,10 +40,10 @@ describe('Change class tests', () => {
     const change = new Change({
       path: '/foo',
     });
-    assert.equal(change.path, '/foo');
-    assert.equal(change.uid, null);
-    assert.equal(change.type, 'modified');
-    assert.equal(change.deleted, false);
+    assert.strictEqual(change.path, '/foo');
+    assert.strictEqual(change.uid, null);
+    assert.strictEqual(change.type, 'modified');
+    assert.strictEqual(change.deleted, false);
   });
 
   it('Can create a new delete change instance', () => {
@@ -51,8 +51,8 @@ describe('Change class tests', () => {
       path: '/foo',
       type: 'deleted',
     });
-    assert.equal(change.path, '/foo');
-    assert.equal(change.deleted, true);
+    assert.strictEqual(change.path, '/foo');
+    assert.strictEqual(change.deleted, true);
   });
 
   it('Can create a change with no path', () => {
@@ -60,15 +60,15 @@ describe('Change class tests', () => {
       uid: '1234',
       type: 'deleted',
     });
-    assert.equal(change.path, undefined);
-    assert.equal(change.deleted, true);
-    assert.equal(change.uid, '1234');
+    assert.strictEqual(change.path, undefined);
+    assert.strictEqual(change.deleted, true);
+    assert.strictEqual(change.uid, '1234');
   });
 
   it('Can create a change instance from params', () => {
     const change = Change.fromParams({ path: '/foo' });
-    assert.equal(change.path, '/foo');
-    assert.equal(change.uid, null);
+    assert.strictEqual(change.path, '/foo');
+    assert.strictEqual(change.uid, null);
   });
 
   it('Can create a change instance from observation params', () => {
@@ -81,9 +81,9 @@ describe('Change class tests', () => {
         },
       },
     });
-    assert.equal(change.path, '/foo/bar');
-    assert.equal(change.uid, '1234');
-    assert.equal(change.deleted, true);
+    assert.strictEqual(change.path, '/foo/bar');
+    assert.strictEqual(change.uid, '1234');
+    assert.strictEqual(change.deleted, true);
   });
 
   it('Can create a change instance from observation params with mount point', () => {
@@ -100,9 +100,9 @@ describe('Change class tests', () => {
         },
       },
     });
-    assert.equal(change.path, '/en/bar');
-    assert.equal(change.uid, '1234');
-    assert.equal(change.deleted, true);
+    assert.strictEqual(change.path, '/en/bar');
+    assert.strictEqual(change.uid, '1234');
+    assert.strictEqual(change.deleted, true);
   });
 
   it('Can create a change instance from observation params with mount point at root', () => {
@@ -117,7 +117,7 @@ describe('Change class tests', () => {
         },
       },
     });
-    assert.equal(change.path, '/en/documents/bar');
+    assert.strictEqual(change.path, '/en/documents/bar');
   });
 
   it('Can create a change instance from observation params with mount path at root', () => {
@@ -132,7 +132,7 @@ describe('Change class tests', () => {
         },
       },
     });
-    assert.equal(change.path, '/bar');
+    assert.strictEqual(change.path, '/bar');
   });
 
   it('Can create a change instance from observation params with non matching mountpoint', () => {
@@ -147,6 +147,6 @@ describe('Change class tests', () => {
         },
       },
     });
-    assert.equal(change.path, '/documents/bar');
+    assert.strictEqual(change.path, '/documents/bar');
   });
 });

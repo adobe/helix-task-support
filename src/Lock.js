@@ -63,6 +63,9 @@ class Lock {
    * If necessary, create an empty text blob that will be used to acquire a lease on.
    */
   async init() {
+    if (this._initialized) {
+      return;
+    }
     const result = await this._blobSvc.doesBlobExist(this._blob);
     if (!result.exists) {
       try {
@@ -75,6 +78,7 @@ class Lock {
         }
       }
     }
+    this._initialized = true;
   }
 
   /**
@@ -123,11 +127,16 @@ class Lock {
 
   /**
    * Releases a lock previously acquired.
+   *
+   * @returns true if lock was previously acquired, otherwise false
    */
   async release() {
     const lease = this._lease;
-    await this._blobSvc.releaseLease(this._blob, lease);
-    this._lease = null;
+    if (lease) {
+      await this._blobSvc.releaseLease(this._blob, lease);
+      this._lease = null;
+    }
+    return !!lease;
   }
 }
 
