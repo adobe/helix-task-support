@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/adobe/helix-task-support/compare/v1.5.0...v1.5.1) (2020-09-16)
+
+
+### Bug Fixes
+
+* **lock:** releaseLease should check whether the lock was acquired ([#34](https://github.com/adobe/helix-task-support/issues/34)) ([24bb50e](https://github.com/adobe/helix-task-support/commit/24bb50e09ad231e1b47074887f1b9b2b4a6a9653))
+
 # [1.5.0](https://github.com/adobe/helix-task-support/compare/v1.4.0...v1.5.0) (2020-09-10)
 
 
