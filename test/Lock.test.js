@@ -16,16 +16,25 @@
 
 const assert = require('assert');
 const proxyquire = require('proxyquire');
+const sinon = require('sinon');
 const MockBlobService = require('./blob/BlobService.js');
 
+/**
+ * Container data.
+ */
 let containerData = {};
+
+/**
+ * Mock blob service instance.
+ */
+let blobService;
 
 /**
  * Inject mock service into our component.
  */
 const Lock = proxyquire('../src/Lock.js', {
   'azure-storage': {
-    createBlobService: () => new MockBlobService(containerData),
+    createBlobService: () => blobService,
   },
 });
 
@@ -46,68 +55,67 @@ describe('Lock operation tests', () => {
 
   beforeEach(() => {
     containerData = {};
+    blobService = new MockBlobService(containerData);
   });
 
   it('Lock acquire and release', async () => {
     const lock = new Lock(params, console);
-    const result = await lock.acquire();
-    assert.equal(result, true);
-    await lock.release();
+    assert.strictEqual(await lock.acquire(), true);
+    assert.strictEqual(await lock.release(), true);
   });
 
   it('Lock acquire twice must fail', async () => {
     const lock = new Lock(params, console);
     let result = await lock.acquire();
-    assert.equal(result, true);
+    assert.strictEqual(result, true);
     result = await lock.acquire(1);
-    assert.equal(result, false);
+    assert.strictEqual(result, false);
     await lock.release();
   });
 
   it('Lock tryAcquire twice must fail', async () => {
     const lock = new Lock(params, console);
     let result = await lock.tryAcquire();
-    assert.equal(result, true);
+    assert.strictEqual(result, true);
     result = await lock.tryAcquire();
-    assert.equal(result, false);
+    assert.strictEqual(result, false);
     await lock.release();
   });
 
-  it('Lock init succeeds if the empty blob already exists', async () => {
+  it('createBlobFromText isn\'t called if blob already exists', async () => {
+    const spy = sinon.spy(blobService, 'createBlockBlobFromText');
+    sinon.stub(blobService, 'doesBlobExist').yields(null, { exists: true });
+
+    const lock = new Lock(params, console);
+    await lock.acquire();
+    assert(spy.notCalled);
+  });
+
+  it('Lock init succeeds if creating the blob throws with BlobAlreadyExists', async () => {
     const e = new Error();
     e.code = 'BlobAlreadyExists';
-    containerData = {
-      bar: {
-        error: e,
-      },
-    };
+    sinon.stub(blobService, 'createBlockBlobFromText').yields(e);
+
     const lock = new Lock(params, console);
     await assert.doesNotReject(async () => lock.tryAcquire());
   });
 
-  it('Lock init rejects if creating the empty blob fails', async () => {
-    const e = new Error();
-    e.code = 'SomethingElseHappened';
-    containerData = {
-      bar: {
-        error: e,
-      },
-    };
+  it('Lock init rejects if creating the blob throws other error', async () => {
+    sinon.stub(blobService, 'createBlockBlobFromText').yields(new Error('boo'));
+
     const lock = new Lock(params, console);
     await assert.rejects(async () => lock.tryAcquire());
   });
 
   it('Lock tryAcquire rejects if some other error occurs', async () => {
-    const e = new Error();
-    e.code = 'SomethingElseHappened';
-    containerData = {
-      bar: {
-        lock: {
-          error: e,
-        },
-      },
-    };
+    sinon.stub(blobService, 'acquireLease').yields(new Error('boo'));
+
     const lock = new Lock(params, console);
     await assert.rejects(async () => lock.tryAcquire());
+  });
+
+  it('Lock release is no-op if acquire was never called', async () => {
+    const lock = new Lock(params, console);
+    assert.strictEqual(await lock.release(), false);
   });
 });

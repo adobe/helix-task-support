@@ -34,44 +34,42 @@ class BlobService {
   doesBlobExist(container, blob, opts, callback) {
     const cb = callback || opts;
 
-    const data = this._getOrCreateContainer(container);
-    cb(null, { exists: !!data[blob] });
+    const cont = this._getOrCreateContainer(container);
+    cb(null, { exists: !!cont[blob] });
   }
 
   createBlockBlobFromText(container, blob, text, opts, callback) {
     const cb = callback || opts;
 
-    const data = this._getOrCreateContainer(container);
-    if (data.error) {
-      cb(data.error);
-    }
-    data[blob] = { text, lease: null };
+    const cont = this._getOrCreateContainer(container);
+    cont[blob] = { text, lease: null };
     cb(null);
   }
 
   acquireLease(container, blob, opts, callback) {
     const cb = callback || opts;
 
-    const data = this._getOrCreateContainer(container);
-    const obj = data[blob];
-    if (obj.error) {
-      cb(obj.error);
+    const cont = this._getOrCreateContainer(container);
+    let obj = cont[blob];
+    if (!obj) {
+      cont[blob] = { text: '', lease: null };
+      obj = cont[blob];
     }
     if (obj.lease) {
       const e = new Error();
       e.code = 'LeaseAlreadyPresent';
       cb(e);
     }
-    const lease = Math.random().toString(16).substr(2);
-    obj.lease = lease;
-    cb(null, lease);
+    const id = Math.random().toString(16).substr(2);
+    obj.lease = id;
+    cb(null, { id });
   }
 
   releaseLease(container, blob, lease, opts, callback) {
     const cb = callback || opts;
 
-    const data = this._getOrCreateContainer(container);
-    const obj = data[blob];
+    const cont = this._getOrCreateContainer(container);
+    const obj = cont[blob];
     obj.lease = null;
 
     cb(null, lease);

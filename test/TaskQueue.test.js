@@ -47,7 +47,7 @@ describe('TaskQueue validation tests', () => {
     const queue = new TaskQueue(params, console);
     const uuid = await queue.insert({});
     const task = await queue.get(uuid);
-    assert.equal(task.PartitionKey, '');
+    assert.strictEqual(task.PartitionKey, '');
   });
 });
 
@@ -77,52 +77,52 @@ describe('TaskQueue operation tests', () => {
   it('Create task queue', async () => {
     const queue = new TaskQueue(withPartitionKey(params), console);
     const s = queue.toString();
-    assert.notEqual(s, null);
+    assert.notStrictEqual(s, null);
   });
 
   it('Insert object into task queue', async () => {
     const queue = new TaskQueue(withPartitionKey(params), console);
     const uuid = await queue.insert({ foo: 'bar', is: true, when: Date.now() });
     const task = await queue.get(uuid);
-    assert.equal(task.status, 'not started');
+    assert.strictEqual(task.status, 'not started');
   });
 
   it('Fetching non-existing task', async () => {
     const queue = new TaskQueue(withPartitionKey(params), console);
     const task = await queue.get('dummy');
-    assert.equal(task, null);
+    assert.strictEqual(task, null);
   });
 
   it('Check done tasks', async () => {
     const queue = new TaskQueue(withPartitionKey(params), console);
     const uuid = await queue.insert({ foo: 'bar' });
     let done = await queue.done();
-    assert.equal(done.length, 0);
+    assert.strictEqual(done.length, 0);
     await queue.update(uuid, { status: 'done' });
     done = await queue.done();
-    assert.equal(done.length, 1);
-    assert.equal(done[0].RowKey, uuid);
+    assert.strictEqual(done.length, 1);
+    assert.strictEqual(done[0].RowKey, uuid);
   });
 
   it('Check error task', async () => {
     const queue = new TaskQueue(withPartitionKey(params), console);
     const uuid = await queue.insert({ foo: 'bar' });
     let error = await queue.error();
-    assert.equal(error, null);
+    assert.strictEqual(error, undefined);
     await queue.update(uuid, { status: 'error', error: new Error() });
     error = await queue.error();
-    assert.equal(error.RowKey, uuid);
+    assert.strictEqual(error.RowKey, uuid);
   });
 
   it('Check dead task', async () => {
     const queue = new TaskQueue(withPartitionKey(params), console);
     const uuid = await queue.insert({ foo: 'bar' });
     let dead = await queue.dead(1000);
-    assert.equal(dead, null);
+    assert.strictEqual(dead, undefined);
     await sleep(10);
     dead = await queue.dead(9);
-    assert.notEqual(dead, null);
-    assert.equal(dead.RowKey, uuid);
+    assert.notStrictEqual(dead, null);
+    assert.strictEqual(dead.RowKey, uuid);
   });
 
   it('Check wrongly typed uuid is detected', async () => {
@@ -135,8 +135,8 @@ describe('TaskQueue operation tests', () => {
     await queue1.insert({});
     const queue2 = new TaskQueue(withPartitionKey(params), console);
     await queue2.insert({});
-    assert.equal(await queue1.tasks(), 1);
-    assert.equal(await queue2.size(), 2);
+    assert.strictEqual(await queue1.tasks(), 1);
+    assert.strictEqual(await queue2.size(), 2);
   });
 
   it('Task queue should return empty list when acquire fails', async () => {
@@ -148,6 +148,6 @@ describe('TaskQueue operation tests', () => {
     const uuid = await queue.insert({ foo: 'bar' });
     await queue.update(uuid, { status: 'done' });
     const done = await queue.done();
-    assert.equal(done.length, 0);
+    assert.strictEqual(done.length, 0);
   });
 });
