@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/adobe/helix-task-support#readme",
   "dependencies": {
-    "@azure/service-bus": "^1.1.7",
+    "@azure/service-bus": "^7.0.0",
     "azure-storage": "^2.10.3",
     "uuid": "^8.1.0"
   },
