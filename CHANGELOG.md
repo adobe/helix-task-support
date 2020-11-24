@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/adobe/helix-task-support/compare/v1.5.1...v1.5.2) (2020-11-24)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @azure/service-bus to v7 ([#47](https://github.com/adobe/helix-task-support/issues/47)) ([b17fd05](https://github.com/adobe/helix-task-support/commit/b17fd05f26ab5b1ed07b4581732aea77121b24ed))
+
 ## [1.5.1](https://github.com/adobe/helix-task-support/compare/v1.5.0...v1.5.1) (2020-09-16)
 
 
