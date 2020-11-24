@@ -1,3 +1,10 @@
+## [1.5.3](https://github.com/adobe/helix-task-support/compare/v1.5.2...v1.5.3) (2020-11-24)
+
+
+### Bug Fixes
+
+* **deps:** remove unused dependency @azure/service-bus ([#48](https://github.com/adobe/helix-task-support/issues/48)) ([d6774af](https://github.com/adobe/helix-task-support/commit/d6774af13f5c350c8f91f4bbc0ff5aa82fa127cf))
+
 ## [1.5.2](https://github.com/adobe/helix-task-support/compare/v1.5.1...v1.5.2) (2020-11-24)
 
 
