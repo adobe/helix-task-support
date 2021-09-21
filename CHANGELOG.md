@@ -1,3 +1,10 @@
+## [1.5.4](https://github.com/adobe/helix-task-support/compare/v1.5.3...v1.5.4) (2021-09-21)
+
+
+### Bug Fixes
+
+* use node 14 ([00ddcd2](https://github.com/adobe/helix-task-support/commit/00ddcd28968a21a929f49a458752b1e9dadf22a9))
+
 ## [1.5.3](https://github.com/adobe/helix-task-support/compare/v1.5.2...v1.5.3) (2020-11-24)
 
 

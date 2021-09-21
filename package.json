@@ -1,6 +1,6 @@
 {
   "name": "@adobe/helix-task-support",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "Helix Task Support",
   "main": "src/index.js",
   "types": "src/index.d.ts",
