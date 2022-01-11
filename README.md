@@ -1,3 +1,5 @@
+> **Note: this repository and respective service is no longer maintained**
+
 # Helix Task Support
 
 > An example library to be used in and with Project Helix
